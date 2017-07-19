@@ -4,6 +4,7 @@ var path = require('path');
 var os = require('os');
 var cluster = require('cluster');
 
+var request = require('request');
 var async = require('async');
 var extend = require('extend');
 
@@ -630,27 +631,16 @@ function updateDloaComment() {
               results.fmd.usd
             ];
 
-            var unsigned = api_arr.join(':');
-            _this.daemon.cmd('signmessage',
-                ['FL4Ty99iBsGu3aPrGx6rwUtWwyNvUjb7ZD', unsigned],
-                function (result) {
-                    if (result.error) {
-                        emitErrorLog('signmessage call failed for daemon instance ' +
-                          result.instance.index + ' with error ' + JSON.stringify(result.error));
-                        dloaCommentCache = unsigned;
-                    } else {
-                        dloaCommentCache = unsigned + ":" + result.response;
-                    }
-                }, true
-            );
+            dloaCommentCache = api_arr.join(':');
         }
         else
-        dloaCommentCache = 'pool.alexandria.io:error';
+            dloaCommentCache = 'pool.alexandria.io:error';
+
         console.log("DloaComment Update: " + dloaCommentCache);
         Object.keys(cluster.workers).forEach(function(id) {
-            if (cluster.workers[id].type === 'pool'){
-                cluster.workers[id].send({type: 'dloaComment', dloaComment: dloaCommentCache});
-            }
-        });
+          if (cluster.workers[id].type === 'pool'){
+            cluster.workers[id].send({type: 'dloaComment', dloaCommentUnsigned: dloaCommentCache});
+          }
+         });
     });
 }
