@@ -87,7 +87,7 @@ if (cluster.isWorker){
     }
 
     return;
-} 
+}
 
 
 //Read all pool configs from pool_configs and join them with their coin profile
@@ -135,7 +135,7 @@ var buildPoolConfigs = function(){
     poolConfigFiles.forEach(function(poolOptions){
 
         poolOptions.coinFileName = poolOptions.coin;
-    
+
        for (var i=0; i < poolOptions.auxes.length; i++){
             var auxFilePath = 'coins/' + poolOptions.auxes[i].coin;
             if (!fs.existsSync(auxFilePath)){
@@ -538,5 +538,119 @@ var startProfitSwitch = function(){
     startProfitSwitch();
 
     startCliListener();
+
+    updateDloaComment();
+
         }, 10000);
 })();
+
+function updateDloaComment() {
+    var dloaCommentCache = 'pool.alexandria.io'
+    async.parallel({
+        mrr: function (callback) {
+        request('https://www.miningrigrentals.com/api/v1/rigs?method=list&type=scrypt', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            try {
+              var parsed = JSON.parse(body);
+              return callback(null, {
+                last_10: parsed.data.info.price.last_10
+              });
+            } catch (err) {
+              console.error('Unable to parse MRR API response', err);
+            }
+          }
+          callback(null, {
+            last_10: 'nr'
+          });
+        })
+        },
+        pool: function (callback) {
+        request('https://api.alexandria.io/pool/api/stats', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            try {
+              var parsed = JSON.parse(body);
+              return callback(null, {
+                hashrate: parsed.pools.florincoin.hashrate
+              });
+            } catch (err) {
+              console.error('Unable to parse Pool API response', err);
+            }
+          }
+          callback(null, {
+            hashrate: 'nr'
+          });
+        })
+        },
+        fmd: function (callback) {
+        request('https://api.alexandria.io/flo-market-data/v1/getAll', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            try {
+              var parsed = JSON.parse(body);
+              return callback(null, {
+                weighted: parsed.weighted,
+                usd: parsed.USD
+              });
+            } catch (err) {
+              console.error('Unable to parse FMD API response', err);
+            }
+          }
+          callback(null, {
+            weighted: 'nr',
+            usd: 'nr'
+          });
+        })
+        },
+        fbd: function (callback) {
+        request('https://api.alexandria.io/florincoin/getMiningInfo', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            try {
+              var parsed = JSON.parse(body);
+              return callback(null, {
+                networkhashps: parsed.networkhashps
+              });
+            } catch (err) {
+              console.error('Unable to parse HR API response', err);
+            }
+          }
+          callback(null, {
+            networkhashps: 'nr'
+          });
+        })
+      }
+    },
+    function (err, results) {
+        if (!err) {
+            var api_arr = [
+              'alexandria-historian-v001',
+              'pool.alexandria.io',
+              results.mrr.last_10,
+              results.pool.hashrate,
+              results.fbd.networkhashps,
+              results.fmd.weighted,
+              results.fmd.usd
+            ];
+
+            var unsigned = api_arr.join(':');
+            _this.daemon.cmd('signmessage',
+                ['FL4Ty99iBsGu3aPrGx6rwUtWwyNvUjb7ZD', unsigned],
+                function (result) {
+                    if (result.error) {
+                        emitErrorLog('signmessage call failed for daemon instance ' +
+                          result.instance.index + ' with error ' + JSON.stringify(result.error));
+                        dloaCommentCache = unsigned;
+                    } else {
+                        dloaCommentCache = unsigned + ":" + result.response;
+                    }
+                }, true
+            );
+        }
+        else
+        dloaCommentCache = 'pool.alexandria.io:error';
+        console.log("DloaComment Update: " + dloaCommentCache);
+        Object.keys(cluster.workers).forEach(function(id) {
+            if (cluster.workers[id].type === 'pool'){
+                cluster.workers[id].send({type: 'dloaComment', dloaComment: dloaCommentCache});
+            }
+        });
+    });
+}
