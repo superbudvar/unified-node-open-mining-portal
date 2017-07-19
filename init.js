@@ -540,7 +540,7 @@ var startProfitSwitch = function(){
 
     startCliListener();
 
-    updateDloaComment();
+    setInterval(updateDloaComment, 60 * 1000);
 
         }, 10000);
 })();
@@ -636,7 +636,6 @@ function updateDloaComment() {
         else
             dloaCommentCache = 'pool.alexandria.io:error';
 
-        console.log("DloaComment Update: " + dloaCommentCache);
         Object.keys(cluster.workers).forEach(function(id) {
           if (cluster.workers[id].type === 'pool'){
             cluster.workers[id].send({type: 'dloaComment', dloaCommentUnsigned: dloaCommentCache});
