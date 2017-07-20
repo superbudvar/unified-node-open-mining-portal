@@ -19,7 +19,7 @@ var ProfitSwitch = require('./libs/profitSwitch.js');
 
 var algos = require('merged-pooler/lib/algoProperties.js');
 
-MRRAPI = new MiningRigRentalsAPI(process.env.MRR_API_key, process.env.MRR_API_secret)
+MRRAPI = new MiningRigRentalsAPI(process.env.MRR_API_KEY, process.env.MRR_API_SECRET)
 
 
 JSON.minify = JSON.minify || require("node-json-minify");
