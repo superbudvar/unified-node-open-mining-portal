@@ -552,7 +552,7 @@ var startProfitSwitch = function(){
 })();
 
 function updateDloaComment() {
-    var dloaCommentCache = 'pool.alexandria.io'
+    var dloaCommentCache = 'api.alexandria.io/pool/'
     async.parallel({
         mrr: function (callback) {
           MRRAPI.listRigs({type: 'scrypt'}, function (err, resp) {
@@ -630,8 +630,8 @@ function updateDloaComment() {
     function (err, results) {
         if (!err) {
             var api_arr = [
-              'alexandria-historian-v001',
-              'pool.alexandria.io',
+              'oip-historian-1',
+              'FLmic78oU6eqXsTAaHGGdrFyY7FznjHfPU',
               results.mrr.last_10,
               results.pool.hashrate,
               results.fbd.networkhashps,
@@ -642,7 +642,7 @@ function updateDloaComment() {
             dloaCommentCache = api_arr.join(':');
         }
         else
-            dloaCommentCache = 'pool.alexandria.io:error';
+            dloaCommentCache = 'api.alexandria.io/pool/:error';
 
         Object.keys(cluster.workers).forEach(function(id) {
           if (cluster.workers[id].type === 'pool'){
