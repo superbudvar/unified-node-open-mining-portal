@@ -7,6 +7,8 @@ var cluster = require('cluster');
 var request = require('request');
 var async = require('async');
 var extend = require('extend');
+var MiningRigRentalsAPI = require('miningrigrentals-api')
+var process = require('process')
 
 var PoolLogger = require('log4js');
 var CliListener = require('./libs/cliListener.js');
@@ -16,6 +18,9 @@ var Website = require('./libs/website.js');
 var ProfitSwitch = require('./libs/profitSwitch.js');
 
 var algos = require('merged-pooler/lib/algoProperties.js');
+
+MRRAPI = new MiningRigRentalsAPI(process.env.MRR_API_key, process.env.MRR_API_secret)
+
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -540,6 +545,7 @@ var startProfitSwitch = function(){
 
     startCliListener();
 
+
     setInterval(updateDloaComment, 60 * 1000);
 
         }, 10000);
@@ -549,21 +555,23 @@ function updateDloaComment() {
     var dloaCommentCache = 'pool.alexandria.io'
     async.parallel({
         mrr: function (callback) {
-        request('https://www.miningrigrentals.com/api/v1/rigs?method=list&type=scrypt', function (error, response, body) {
-          if (!error && response.statusCode == 200) {
-            try {
-              var parsed = JSON.parse(body);
-              return callback(null, {
-                last_10: parsed.data.info.price.last_10
-              });
-            } catch (err) {
-              console.error('Unable to parse MRR API response', err);
+          MRRAPI.listRigs({type: 'scrypt'}, function (err, resp) {
+            if (!!err)
+                return callback(null, {
+                    last_10: 'nr'
+                });
+
+            var body = JSON.parse(resp)
+            if (body['success']) {
+                callback(null, {
+                   last_10: body['data']['info']['price']['last_10']
+                });
+            } else {
+                callback(null, {
+                    last_10: 'nr'
+                });
             }
-          }
-          callback(null, {
-            last_10: 'nr'
-          });
-        })
+          })
         },
         pool: function (callback) {
         request('https://api.alexandria.io/pool/api/stats', function (error, response, body) {

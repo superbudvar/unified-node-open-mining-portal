@@ -39,6 +39,7 @@
         "url": "https://github.com/UNOMP/unified-node-open-mining-portal.git"
     },
     "dependencies": {
+        "miningrigrentals-api": "git://github.com/oipwg/miningrigrentals-api",
         "merged-pooler": "git://github.com/dloa/node-merged-pool",
         "dateformat": "1.0.12",
 	"log4js": "0.6.31",
