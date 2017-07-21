@@ -555,23 +555,28 @@ function updateDloaComment() {
     var dloaCommentCache = 'api.alexandria.io/pool/'
     async.parallel({
         mrr: function (callback) {
-          MRRAPI.listRigs({type: 'scrypt'}, function (err, resp) {
-            if (!!err)
+          try {
+            MRRAPI.listRigs({type: 'scrypt'}, function (err, resp) {
+              if (!!err)
                 return callback(null, {
-                    last_10: 'nr'
-                });
+                  last_10: 'nr'
+                })
 
-            var body = JSON.parse(resp)
-            if (body['success']) {
+              var body = JSON.parse(resp)
+              if (body['success']) {
                 callback(null, {
-                   last_10: body['data']['info']['price']['last_10']
+                  last_10: body['data']['info']['price']['last_10']
                 });
-            } else {
+              } else {
                 callback(null, {
-                    last_10: 'nr'
+                  last_10: 'nr'
                 });
-            }
-          })
+              }
+            })
+          } catch (e) {
+              callback(null, {
+                  last_10: 'nr'
+              });}
         },
         pool: function (callback) {
         request('https://api.alexandria.io/pool/api/stats', function (error, response, body) {
