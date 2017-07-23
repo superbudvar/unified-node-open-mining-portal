@@ -562,7 +562,7 @@ function updateDloaComment() {
                   last_10: 'nr'
                 })
 
-              var body = JSON.parse(resp)
+              try { var body = JSON.parse(resp)} catch (e) { callback(null, {last_10: 'nr'}); }
               if (body['success']) {
                 callback(null, {
                   last_10: body['data']['info']['price']['last_10']
