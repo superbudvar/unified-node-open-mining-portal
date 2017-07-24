@@ -570,10 +570,10 @@ function updateDloaComment() {
                 var last_10 = body['data']['info']['price']['last_10']
                 mrr_last10_cache.push(last_10)
                 mrr_last10_sum += last_10
-                if(mrr_last10_cache.length > 1440)
+                if(mrr_last10_cache.length > 1440) {
                   mrr_last10_sum -= mrr_last10_cache.shift()
                   mrr_last10_avg = mrr_last10_sum / 1440
-
+                }
                 callback(null, {
                   last_10: last_10,
                   last_24hr: mrr_last10_avg
