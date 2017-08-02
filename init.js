@@ -568,6 +568,7 @@ function updateDloaComment() {
               try { var body = JSON.parse(resp)} catch (e) { callback(null, {last_10: 'nr', last_24hr: 'nr'}); }
               if (body['success']) {
                 var last_10 = body['data']['info']['price']['last_10']
+                last_10 = parseFloat(last_10)
                 if (!isNaN(last_10)) {
                   mrr_last10_cache.push(last_10)
                   mrr_last10_sum += last_10
