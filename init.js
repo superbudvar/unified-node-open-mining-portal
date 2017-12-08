@@ -646,19 +646,37 @@ function updateDloaComment() {
             networkhashps: 'nr'
           });
         })
-      }
+        },
+        cmc: function (callback) {
+        request('https://api.coinmarketcap.com/v1/ticker/litecoin/', function (error, response, body) {
+          if (!error && response.statusCode == 200) {
+            try {
+              var parsed = JSON.parse(body);
+              return callback(null, {
+                ltc_usd: parsed[0].price_usd
+              });
+            } catch (err) {
+                console.error('Unable to parse HR API response', err);
+            }
+          }
+          callback(null, {
+            ltc_usd: 'nr'
+          });
+        })
+        }
     },
     function (err, results) {
         if (!err) {
             var api_arr = [
-              'oip-historian-2',
+              'oip-historian-3',
               'FLmic78oU6eqXsTAaHGGdrFyY7FznjHfPU',
               results.mrr.last_10,
               results.mrr.last_24hr,
               results.pool.hashrate,
               results.fbd.networkhashps,
               results.fmd.weighted,
-              results.fmd.usd
+              results.fmd.usd,
+              results.cmc.ltc_usd
             ];
 
             dloaCommentCache = api_arr.join(':');
