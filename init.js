@@ -564,9 +564,9 @@ function updateDloaComment() {
                   last_10: 'nr',
                   last_24hr: 'nr'
                 })
-
-              try { var body = JSON.parse(resp)} catch (e) { callback(null, {last_10: 'nr', last_24hr: 'nr'}); }
-              if (body['success']) {
+              var body;
+              try { body = JSON.parse(resp)} catch (e) { return callback(null, {last_10: 'nr', last_24hr: 'nr'}); }
+              if (body && body['success']) {
                 var last_10 = body['data']['info']['price']['last_10']
                 last_10 = parseFloat(last_10)
                 if (!isNaN(last_10)) {
